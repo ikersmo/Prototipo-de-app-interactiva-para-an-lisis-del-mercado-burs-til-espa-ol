@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolsa Española Landscape</title>
+<meta name="description" content="Revenue, Profitability and Market Value of Spain's Largest Listed Companies">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #0d0f12;
+  --bg2:      #111418;
+  --bg3:      #181c22;
+  --card:     #141720;
+  --card2:    #1c2030;
+  --border:   #22273a;
+  --border2:  #2c3248;
+  --border3:  #3a4060;
+  --text:     #dde2ef;
+  --text2:    #8b94b0;
+  --text3:    #4e566e;
+  --text4:    #363d55;
+  --green:    #2ecf82;
+  --green-bg: #0d2a1e;
+  --green-mid:#1a5c3a;
+  --red:      #e8566a;
+  --red-bg:   #2a0e14;
+  --red-mid:  #5c1a24;
+  --gold:     #e0b854;
+  --gold-bg:  #2a2010;
+  --blue:     #6b9cf5;
+  --blue-bg:  #101e40;
+  --purple:   #9b8cf0;
+  --muted:    #5a6480;
+}
+html{font-size:13.5px}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  line-height:1.55;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+#hdr{
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:16px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  position:sticky;top:0;z-index:200;
+}
+.hdr-brand{display:flex;flex-direction:column;gap:2px}
+.hdr-brand h1{
+  font-size:1rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text);line-height:1.2;
+}
+.hdr-brand .byline{
+  font-size:.68rem;color:var(--text3);
+  letter-spacing:.03em;font-weight:400;
+}
+.hdr-brand .datestamp{
+  font-size:.66rem;color:var(--text4);
+  margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-wrap{
+  position:relative;display:flex;align-items:center;
+}
+.search-wrap svg{
+  position:absolute;left:9px;pointer-events:none;
+  color:var(--text3);
+}
+#srch{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:7px;
+  padding:6px 11px 6px 30px;
+  color:var(--text);
+  font-family:inherit;font-size:.78rem;
+  width:210px;outline:none;
+  transition:border-color .18s,background .18s;
+}
+#srch:focus{border-color:var(--border3);background:var(--card2)}
+#srch::placeholder{color:var(--text3)}
+#btn-reset{
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:7px;
+  padding:6px 14px;
+  color:var(--text2);
+  font-family:inherit;font-size:.75rem;font-weight:500;
+  cursor:pointer;
+  letter-spacing:.04em;
+  transition:all .18s;
+  white-space:nowrap;
+}
+#btn-reset:hover{border-color:var(--border3);color:var(--text);background:var(--card2)}
+
+/* ── MAIN ────────────────────────────────────────────────────── */
+#wrap{max-width:1440px;margin:0 auto;padding:20px 28px 56px}
+
+/* ── SECTOR TABS ─────────────────────────────────────────────── */
+#tabs{
+  display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px;
+}
+.tab{
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:4px 12px;
+  color:var(--text3);
+  font-family:inherit;font-size:.72rem;font-weight:500;
+  cursor:pointer;
+  letter-spacing:.03em;
+  transition:all .15s;
+}
+.tab:hover{border-color:var(--border2);color:var(--text2)}
+.tab.on{
+  background:var(--card2);
+  border-color:var(--border3);
+  color:var(--text);
+}
+.tab.on[data-s="All"]{border-color:var(--muted);color:var(--text)}
+
+/* ── CHART BOX ───────────────────────────────────────────────── */
+#chart-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+#chart-topbar{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:12px 20px 10px;
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap;gap:8px;
+}
+.chart-eyebrow{
+  font-size:.64rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text3);margin-bottom:3px;
+}
+.chart-title{
+  font-size:.84rem;font-weight:600;
+  color:var(--text);letter-spacing:.01em;
+}
+/* inline legend block */
+#legends{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.leg-block{display:flex;flex-direction:column;gap:4px}
+.leg-label{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
+.leg-gradient{
+  width:110px;height:6px;border-radius:3px;
+  background:linear-gradient(to right,#cd4454,#2b3046,#25b872);
+}
+.leg-ticks{display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3)}
+/* bubble size legend */
+.bub-row{display:flex;align-items:center;gap:8px}
+.bub-item{display:flex;align-items:center;gap:5px;font-size:.6rem;color:var(--text3)}
+.bub-circle{border-radius:50%;border:1px solid var(--border3);background:transparent;flex-shrink:0}
+
+#chart-inner{position:relative}
+#chart-plot{width:100%;height:560px}
+#no-data{
+  display:none;align-items:center;justify-content:center;
+  height:200px;color:var(--text3);font-size:.85rem;
+  letter-spacing:.02em;
+}
+
+/* ── PANELS ROW ──────────────────────────────────────────────── */
+.section-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:13px;margin-top:24px;
+}
+.section-row h2{
+  font-size:.64rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text3);white-space:nowrap;
+}
+.section-row .sline{flex:1;height:1px;background:var(--border)}
+.section-note{font-size:.62rem;color:var(--text4);white-space:nowrap}
+
+/* ── SUMMARY ─────────────────────────────────────────────────── */
+#summary{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:8px;margin-bottom:4px;
+}
+.s-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:13px 15px;
+}
+.s-lbl{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:5px}
+.s-val{font-size:1.18rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.1}
+.s-sub{font-size:.62rem;color:var(--text4);margin-top:3px}
+
+/* ── INSIGHT CARDS ───────────────────────────────────────────── */
+#insights{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:10px;
+}
+.ic{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:16px 18px;
+  display:flex;flex-direction:column;gap:5px;
+  transition:border-color .2s;
+  position:relative;overflow:hidden;
+}
+.ic::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  border-radius:9px 9px 0 0;
+  opacity:.7;
+}
+.ic.c-gold::before{background:var(--gold)}
+.ic.c-blue::before{background:var(--blue)}
+.ic.c-green::before{background:var(--green)}
+.ic.c-red::before{background:var(--red)}
+.ic.c-muted::before{background:var(--text4)}
+.ic:hover{border-color:var(--border2)}
+.ic-tag{
+  font-size:.6rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:1px;
+}
+.ic.c-gold .ic-tag{color:var(--gold)}
+.ic.c-blue .ic-tag{color:var(--blue)}
+.ic.c-green .ic-tag{color:var(--green)}
+.ic.c-red .ic-tag{color:var(--red)}
+.ic.c-muted .ic-tag{color:var(--text3)}
+.ic-val{
+  font-size:.98rem;font-weight:700;
+  color:var(--text);letter-spacing:.01em;
+  line-height:1.2;
+}
+.ic-desc{font-size:.72rem;color:var(--text2);line-height:1.5}
+
+/* ── UTILS ───────────────────────────────────────────────────── */
+.pos{color:var(--green)}.neg{color:var(--red)}
+@media(max-width:640px){
+  #hdr{padding:12px 16px}
+  #wrap{padding:14px 12px 40px}
+  #chart-plot{height:400px}
+  #srch{width:160px}
+}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="hdr-brand">
+    <h1>Bolsa Española Landscape</h1>
+    <div class="byline">Revenue, Profitability &amp; Market Value — Spain's Major Listed Companies</div>
+    <div class="datestamp" id="datestamp">Loading data...</div>
+  </div>
+  <div class="hdr-right">
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="srch" placeholder="Ticker or company name..." autocomplete="off" spellcheck="false">
+    </div>
+    <button id="btn-reset">Reset Zoom</button>
+  </div>
+</header>
+
+<main id="wrap">
+
+  <div id="tabs"></div>
+
+  <div id="chart-box">
+    <div id="chart-topbar">
+      <div>
+        <div class="chart-eyebrow">Bubble Chart</div>
+        <div class="chart-title">Revenue vs. Net Income &mdash; Bubble size proportional to Market Capitalisation</div>
+      </div>
+      <div id="legends">
+        <div class="leg-block">
+          <div class="leg-label">12-Month Price Return</div>
+          <div class="leg-gradient"></div>
+          <div class="leg-ticks"><span>&#8722;50%</span><span>Flat</span><span>+100%+</span></div>
+        </div>
+        <div class="leg-block">
+          <div class="leg-label">Market Cap</div>
+          <div class="bub-row">
+            <div class="bub-item"><div class="bub-circle" style="width:10px;height:10px"></div><span>&lt;€10B</span></div>
+            <div class="bub-item"><div class="bub-circle" style="width:18px;height:18px"></div><span>€50B</span></div>
+            <div class="bub-item"><div class="bub-circle" style="width:28px;height:28px"></div><span>&gt;€100B</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="chart-inner">
+      <div id="chart-plot"></div>
+      <div id="no-data">No companies match the current selection.</div>
+    </div>
+  </div>
+
+  <div class="section-row">
+    <h2>Universe Summary</h2>
+    <div class="sline"></div>
+    <div class="section-note" id="summary-scope">Full universe</div>
+  </div>
+  <div id="summary"></div>
+
+  <div class="section-row" style="margin-top:28px">
+    <h2>Key Insights</h2>
+    <div class="sline"></div>
+    <div class="section-note" id="insights-scope">Full universe</div>
+  </div>
+  <div id="insights"></div>
+
+</main>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const META = {
+  title: "Bolsa Española Landscape v2",
+  generated_at: "2026-03-19T19:19:38Z"
+};
+const ALL = [
+  {tk:"ITX",name:"Industria de Diseño Textil, S.A.",sector:"Consumer Discretionary",price:50.8,mcap:158.31,rev:39.86,ni:6.22,pm:0.156,r12:0.0951,bsz:57.8,cur:"EUR",country:"Spain",ind:"Apparel Retail",mcr:3.97},
+  {tk:"SAN",name:"Banco Santander, S.A.",sector:"Financials",price:9.35,mcap:135.63,rev:46.84,ni:11.94,pm:0.3011,r12:0.4251,bsz:56.3,cur:"EUR",country:"Spain",ind:"Banks - Diversified",mcr:2.90},
+  {tk:"IBE",name:"Iberdrola, S.A.",sector:"Utilities",price:19.56,mcap:132.18,rev:44.08,ni:5.69,pm:0.1426,r12:0.3887,bsz:56.1,cur:"EUR",country:"Spain",ind:"Utilities - Diversified",mcr:3.00},
+  {tk:"BBVA",name:"Banco Bilbao Vizcaya Argentaria, S.A.",sector:"Financials",price:17.92,mcap:101.72,rev:31.65,ni:10.11,pm:0.3321,r12:0.3325,bsz:53.6,cur:"EUR",country:"Spain",ind:"Banks - Diversified",mcr:3.21},
+  {tk:"CABK",name:"CaixaBank, S.A.",sector:"Financials",price:10.10,mcap:70.58,rev:15.35,ni:5.61,pm:0.3836,r12:0.346,bsz:50.2,cur:"EUR",country:"Spain",ind:"Banks - Regional",mcr:4.60},
+  {tk:"FER",name:"Ferrovial SE",sector:"Industrials",price:54.58,mcap:39.22,rev:9.63,ni:0.87,pm:0.0922,r12:0.3338,bsz:44.6,cur:"EUR",country:"Netherlands",ind:"Engineering & Construction",mcr:4.07},
+  {tk:"AENA",name:"Aena S.M.E., S.A.",sector:"Industrials",price:25.24,mcap:37.86,rev:6.30,ni:2.14,pm:0.3389,r12:0.1567,bsz:44.3,cur:"EUR",country:"Spain",ind:"Airports & Air Services",mcr:6.01},
+  {tk:"ELE",name:"Endesa, S.A.",sector:"Utilities",price:35.29,mcap:36.61,rev:21.03,ni:2.20,pm:0.1045,r12:0.5492,bsz:44.0,cur:"EUR",country:"Spain",ind:"Utilities - Regulated Electric",mcr:1.74},
+  {tk:"MTS",name:"ArcelorMittal S.A.",sector:"Materials",price:42.76,mcap:32.55,rev:61.35,ni:3.15,pm:0.0514,r12:0.4094,bsz:42.9,cur:"USD",country:"Luxembourg",ind:"Steel",mcr:0.53},
+  {tk:"REP",name:"Repsol, S.A.",sector:"Energy",price:24.79,mcap:27.49,rev:48.35,ni:1.83,pm:0.0393,r12:1.042,bsz:41.3,cur:"EUR",country:"Spain",ind:"Oil & Gas Integrated",mcr:0.57},
+  {tk:"ACS",name:"ACS, Actividades de Construcción y Servicios, S.A.",sector:"Industrials",price:105.10,mcap:27.38,rev:49.86,ni:0.95,pm:0.0191,r12:0.9179,bsz:41.2,cur:"EUR",country:"Spain",ind:"Engineering & Construction",mcr:0.55},
+  {tk:"NTGY",name:"Naturgy Energy Group, S.A.",sector:"Utilities",price:26.42,mcap:24.48,rev:19.46,ni:2.02,pm:0.104,r12:0.0501,bsz:40.2,cur:"EUR",country:"Spain",ind:"Utilities - Regulated Gas",mcr:1.26},
+  {tk:"AMS",name:"Amadeus IT Group, S.A.",sector:"Technology",price:49.10,mcap:21.10,rev:6.52,ni:1.34,pm:0.205,r12:-0.3242,bsz:38.8,cur:"EUR",country:"Spain",ind:"Information Technology Services",mcr:3.24},
+  {tk:"TEF",name:"Telefonica, S.A.",sector:"Communication Services",price:3.63,mcap:20.50,rev:35.95,ni:-2.20,pm:-0.1201,r12:-0.1618,bsz:38.5,cur:"EUR",country:"Spain",ind:"Telecom Services",mcr:0.57},
+  {tk:"CLNX",name:"Cellnex Telecom, S.A.",sector:"Communication Services",price:27.13,mcap:18.27,rev:4.12,ni:-0.36,pm:-0.0876,r12:-0.1647,bsz:37.4,cur:"EUR",country:"Spain",ind:"Real Estate Services",mcr:4.43},
+  {tk:"IAG",name:"International Airlines Group S.A.",sector:"Consumer Discretionary",price:3.97,mcap:18.14,rev:33.21,ni:3.34,pm:0.1006,r12:0.1226,bsz:37.3,cur:"EUR",country:"United Kingdom",ind:"Airlines",mcr:0.55},
+  {tk:"SAB",name:"Banco Sabadell, S.A.",sector:"Financials",price:3.02,mcap:15.01,rev:4.41,ni:1.25,pm:0.4025,r12:0.084,bsz:35.6,cur:"EUR",country:"Spain",ind:"Banks - Diversified",mcr:3.40},
+  {tk:"BKT",name:"Bankinter, S.A.",sector:"Financials",price:13.14,mcap:11.80,rev:2.72,ni:1.09,pm:0.400,r12:0.214,bsz:33.3,cur:"EUR",country:"Spain",ind:"Banks - Regional",mcr:4.34},
+  {tk:"ANA",name:"Acciona, S.A.",sector:"Industrials",price:210.60,mcap:11.48,rev:21.49,ni:0.80,pm:0.0374,r12:0.6622,bsz:33.0,cur:"EUR",country:"Spain",ind:"Engineering & Construction",mcr:0.53},
+  {tk:"MAP",name:"Mapfre, S.A.",sector:"Financials",price:3.68,mcap:11.27,rev:30.02,ni:1.13,pm:0.0377,r12:0.2692,bsz:32.9,cur:"EUR",country:"Spain",ind:"Insurance - Diversified",mcr:0.38},
+  {tk:"IDR",name:"Indra Sistemas, S.A.",sector:"Technology",price:50.00,mcap:8.75,rev:5.57,ni:0.44,pm:0.0783,r12:0.8519,bsz:30.5,cur:"EUR",country:"Spain",ind:"Information Technology Services",mcr:1.57},
+  {tk:"RED",name:"Redeia Corporacion, S.A.",sector:"Utilities",price:14.88,mcap:8.04,rev:1.73,ni:0.49,pm:0.2923,r12:-0.1603,bsz:29.7,cur:"EUR",country:"Spain",ind:"Utilities - Regulated Electric",mcr:4.65},
+  {tk:"MRL",name:"MERLIN Properties SOCIMI, S.A.",sector:"Real Estate",price:13.93,mcap:7.84,rev:0.57,ni:0.79,pm:1.3865,r12:0.428,bsz:29.4,cur:"EUR",country:"Spain",ind:"REIT - Office",mcr:13.75},
+  {tk:"ANE",name:"Acciona Energias Renovables, S.A.",sector:"Utilities",price:20.48,mcap:6.64,rev:4.10,ni:0.66,pm:0.1596,r12:0.1296,bsz:27.9,cur:"EUR",country:"Spain",ind:"Utilities - Renewable",mcr:1.62},
+  {tk:"UNI",name:"Unicaja Banco, S.A.",sector:"Financials",price:2.51,mcap:6.45,rev:1.97,ni:0.63,pm:0.3205,r12:0.3898,bsz:27.6,cur:"EUR",country:"Spain",ind:"Banks - Regional",mcr:3.27},
+  {tk:"GRF",name:"Grifols, S.A.",sector:"Health Care",price:8.90,mcap:6.05,rev:7.52,ni:0.40,pm:0.0534,r12:-0.0737,bsz:27.0,cur:"EUR",country:"Spain",ind:"Drug Manufacturers - General",mcr:0.80},
+  {tk:"LOG",name:"Logista Integral, S.A.",sector:"Consumer Staples",price:31.14,mcap:4.11,rev:13.64,ni:0.28,pm:0.0202,r12:0.0942,bsz:23.3,cur:"EUR",country:"Spain",ind:"Integrated Freight & Logistics",mcr:0.30},
+  {tk:"ROVI",name:"Laboratorios Farmaceuticos Rovi, S.A.",sector:"Health Care",price:79.00,mcap:4.04,rev:0.74,ni:0.14,pm:0.1889,r12:0.5005,bsz:23.2,cur:"EUR",country:"Spain",ind:"Drug Manufacturers - Specialty & Generic",mcr:5.46},
+  {tk:"ENG",name:"Enagas, S.A.",sector:"Utilities",price:14.88,mcap:3.87,rev:0.96,ni:0.34,pm:0.3531,r12:0.1603,bsz:22.8,cur:"EUR",country:"Spain",ind:"Utilities - Regulated Gas",mcr:4.03},
+  {tk:"SCYR",name:"Sacyr, S.A.",sector:"Industrials",price:4.09,mcap:3.27,rev:4.66,ni:0.09,pm:0.0184,r12:0.2306,bsz:21.2,cur:"EUR",country:"Spain",ind:"Engineering & Construction",mcr:0.70},
+  {tk:"COL",name:"Colonial SFL, Socimi S.A.",sector:"Real Estate",price:5.14,mcap:3.18,rev:0.43,ni:0.34,pm:0.8104,r12:-0.0578,bsz:20.9,cur:"EUR",country:"Spain",ind:"REIT - Office",mcr:7.40},
+  {tk:"ACX",name:"Acerinox, S.A.",sector:"Materials",price:11.87,mcap:2.96,rev:5.78,ni:-0.04,pm:-0.0069,r12:0.0403,bsz:20.2,cur:"EUR",country:"Spain",ind:"Steel",mcr:0.51},
+  {tk:"SLR",name:"Solaria Energia y Medio Ambiente, S.A.",sector:"Energy",price:21.93,mcap:2.74,rev:0.31,ni:0.17,pm:0.5551,r12:1.8931,bsz:19.5,cur:"EUR",country:"Spain",ind:"Utilities - Renewable",mcr:8.84},
+  {tk:"MEL",name:"Melia Hotels International, S.A.",sector:"Consumer Discretionary",price:8.94,mcap:1.97,rev:2.08,ni:0.17,pm:0.0819,r12:0.3025,bsz:16.4,cur:"EUR",country:"Spain",ind:"Lodging",mcr:0.95},
+  {tk:"PHM",name:"Pharma Mar, S.A.",sector:"Health Care",price:85.50,mcap:1.48,rev:0.22,ni:0.07,pm:0.3387,r12:-0.0521,bsz:13.7,cur:"EUR",country:"Spain",ind:"Biotechnology",mcr:6.73}
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let activeSector = 'All';
+let searchQuery  = '';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const fmtPct = v => (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+const fmtB   = v => '€' + v.toFixed(2) + 'B';
+
+function getVisible() {
+  let d = [...ALL];
+  if (activeSector !== 'All') d = d.filter(c => c.sector === activeSector);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    d = d.filter(c => c.tk.toLowerCase().includes(q) || c.name.toLowerCase().includes(q));
+  }
+  return d;
+}
+
+// ── HEADER DATE ───────────────────────────────────────────────────────────
+(function(){
+  const d = new Date(META.generated_at);
+  const s = d.toLocaleDateString('en-GB',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('datestamp').textContent = 'Data as of ' + s;
+})();
+
+// ── SECTOR TABS ───────────────────────────────────────────────────────────
+const SECTORS = ['All','Financials','Utilities','Energy','Industrials','Technology',
+  'Communication Services','Consumer Discretionary','Consumer Staples','Health Care','Materials','Real Estate'];
+
+(function buildTabs(){
+  const c = document.getElementById('tabs');
+  SECTORS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (s === activeSector ? ' on' : '');
+    b.setAttribute('data-s', s);
+    b.textContent = s;
+    b.addEventListener('click', () => {
+      activeSector = s;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.s === s));
+      render();
+    });
+    c.appendChild(b);
+  });
+})();
+
+// ── COLOR MAPPING ─────────────────────────────────────────────────────────
+// ramp: -0.5 → #cd4454 | 0 → #2b3046 | +1.0 → #25b872
+function r12Color(v) {
+  const lo = -0.5, hi = 1.0;
+  const t = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+  let r, g, b;
+  if (t < 0.5) {
+    const u = t / 0.5;
+    r = Math.round(205 + (43  - 205) * u);
+    g = Math.round(68  + (48  - 68)  * u);
+    b = Math.round(84  + (70  - 84)  * u);
+  } else {
+    const u = (t - 0.5) / 0.5;
+    r = Math.round(43  + (37  - 43)  * u);
+    g = Math.round(48  + (184 - 48)  * u);
+    b = Math.round(70  + (114 - 70)  * u);
+  }
+  return `rgb(${r},${g},${b})`;
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────
+// Only show labels for companies with mcap > threshold in current visible set
+const LABEL_MCAP_THRESHOLD = 15; // €B — show ticker label if mcap >= this
+
+function buildChart(data) {
+  const el  = document.getElementById('chart-plot');
+  const msg = document.getElementById('no-data');
+  if (!data.length) { el.style.display='none'; msg.style.display='flex'; return; }
+  el.style.display=''; msg.style.display='none';
+
+  // Determine label threshold adaptively
+  const maxMcap = Math.max(...data.map(c => c.mcap));
+  const labelThreshold = Math.min(LABEL_MCAP_THRESHOLD, maxMcap * 0.25);
+
+  // Group by sector for legend coloring
+  const byS = {};
+  data.forEach(c => { (byS[c.sector] = byS[c.sector]||[]).push(c); });
+
+  const SCOLS = {
+    'Financials':'#5a8ff8','Utilities':'#4ecf88','Energy':'#d4a843',
+    'Industrials':'#a78bfa','Technology':'#38c4f0','Communication Services':'#fb8a44',
+    'Consumer Discretionary':'#e8566a','Consumer Staples':'#6ee7b7',
+    'Health Care':'#f172b6','Materials':'#94a3b8','Real Estate':'#fbbf24','Other':'#636b82'
+  };
+
+  const traces = Object.entries(byS).map(([sector, cos]) => {
+    const showLabel = cos.map(c => c.mcap >= labelThreshold ? c.tk : '');
+    return {
+      x: cos.map(c => c.rev),
+      y: cos.map(c => c.ni),
+      mode: 'markers+text',
+      type: 'scatter',
+      name: sector,
+      text: showLabel,
+      textposition: 'top center',
+      textfont: {
+        size: 9,
+        color: cos.map(c => c.mcap >= labelThreshold ? 'rgba(190,200,225,0.85)' : 'transparent'),
+        family: 'Inter, system-ui, sans-serif'
+      },
+      marker: {
+        size: cos.map(c => Math.max(c.bsz * 0.68, 8)),
+        color: cos.map(c => r12Color(c.r12)),
+        opacity: 0.82,
+        line: { color: cos.map(c => r12Color(c.r12).replace('rgb','rgba').replace(')',',0.45)')), width: 1.5 }
+      },
+      customdata: cos.map(c => [c.name,c.tk,c.sector,c.rev,c.ni,c.mcap,c.price,c.r12,c.pm,c.country,c.ind]),
+      hovertemplate:
+        '<b style="font-size:13px">%{customdata[0]}</b>' +
+        '<span style="color:#8b94b0;font-size:11px"> %{customdata[1]}</span><br>' +
+        '<span style="color:#4e566e;font-size:10.5px">%{customdata[2]} · %{customdata[10]}</span>' +
+        '<br><br>' +
+        '<span style="color:#8b94b0">Revenue</span>   <b>€%{customdata[3]:.2f}B</b><br>' +
+        '<span style="color:#8b94b0">Net Income</span> <b>€%{customdata[4]:.2f}B</b><br>' +
+        '<span style="color:#8b94b0">Market Cap</span> <b>€%{customdata[5]:.2f}B</b><br>' +
+        '<span style="color:#8b94b0">Price</span>   <b>€%{customdata[6]:.2f}</b><br>' +
+        '<span style="color:#8b94b0">12M Return</span> <b>%{customdata[7]:.1%}</b><br>' +
+        '<span style="color:#8b94b0">Net Margin</span> <b>%{customdata[8]:.1%}</b><br>' +
+        '<span style="color:#8b94b0">Country</span>   <b>%{customdata[9]}</b>' +
+        '<extra></extra>'
+    };
+  });
+
+  // Zero line
+  const shapes = [{
+    type:'line', xref:'paper', x0:0, x1:1,
+    yref:'y', y0:0, y1:0,
+    line:{ color:'rgba(140,155,190,0.22)', width:1.5, dash:'dot' }
+  }];
+
+  const layout = {
+    paper_bgcolor: 'transparent',
+    plot_bgcolor:  'transparent',
+    margin: { l:62, r:24, t:16, b:62 },
+    font: { family:'Inter, system-ui, sans-serif' },
+    xaxis: {
+      title: { text:'Revenue  (€B)', font:{color:'#4e566e',size:10.5}, standoff:10 },
+      gridcolor: 'rgba(34,39,58,0.9)',
+      zerolinecolor: 'rgba(60,70,95,0.5)',
+      tickfont: { color:'#4e566e', size:9.5 },
+      tickprefix:'€', ticksuffix:'B',
+      showgrid: true,
+    },
+    yaxis: {
+      title: { text:'Net Income  (€B)', font:{color:'#4e566e',size:10.5}, standoff:10 },
+      gridcolor: 'rgba(34,39,58,0.9)',
+      zerolinecolor: 'rgba(60,70,95,0.5)',
+      tickfont: { color:'#4e566e', size:9.5 },
+      tickprefix:'€', ticksuffix:'B',
+      type: 'linear',
+      showgrid: true,
+    },
+    showlegend: true,
+    legend: {
+      x: 1, xanchor: 'right', y: 0.02, yanchor: 'bottom',
+      bgcolor: 'rgba(17,20,24,0.85)',
+      bordercolor: '#22273a',
+      borderwidth: 1,
+      font: { color:'#8b94b0', size:9.5, family:'Inter, system-ui' },
+      itemsizing: 'constant',
+      tracegroupgap: 2,
+    },
+    hovermode: 'closest',
+    hoverlabel: {
+      bgcolor: '#10141a',
+      bordercolor: '#2c3248',
+      font: { color:'#dde2ef', size:11.5, family:'Inter, system-ui' },
+      align: 'left'
+    },
+    shapes,
+    dragmode: 'zoom',
+    transition: { duration: 280, easing: 'cubic-in-out' }
+  };
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    modeBarButtonsToRemove: [
+      'lasso2d','select2d','autoScale2d','toggleSpikelines',
+      'hoverCompareCartesian','hoverClosestCartesian','sendDataToCloud'
+    ],
+    modeBarButtonsToAdd: [],
+    displaylogo: false,
+    toImageButtonOptions: { format:'png', filename:'bolsa_espanola_landscape', scale:2 }
+  };
+
+  Plotly.react('chart-plot', traces, layout, config);
+
+  // Make modebar subtle via CSS injection (once)
+  if (!document.getElementById('mb-style')) {
+    const st = document.createElement('style');
+    st.id = 'mb-style';
+    st.textContent = `.modebar{opacity:0.2!important;transition:opacity .3s!important}.modebar:hover{opacity:0.85!important}` +
+      `.modebar-btn path{fill:#8b94b0!important}.modebar-group{border:none!important}`;
+    document.head.appendChild(st);
+  }
+}
+
+// ── SUMMARY (filter-aware) ────────────────────────────────────────────────
+function buildSummary(data) {
+  const losses   = data.filter(c => c.ni < 0).length;
+  const totMcap  = data.reduce((s,c) => s + c.mcap, 0);
+  const totRev   = data.reduce((s,c) => s + c.rev, 0);
+  const totNI    = data.reduce((s,c) => s + c.ni, 0);
+  const sectors  = new Set(data.map(c => c.sector)).size;
+  const avgMcap  = data.length ? totMcap / data.length : 0;
+
+  const items = [
+    { lbl:'Companies',    val: data.length,              sub:'in selection' },
+    { lbl:'Sectors',      val: sectors,                  sub:'GICS represented' },
+    { lbl:'In Loss',      val: losses,                   sub:'negative net income' },
+    { lbl:'Market Cap',   val: '€' + totMcap.toFixed(0) + 'B', sub:'aggregate' },
+    { lbl:'Revenue',      val: '€' + totRev.toFixed(0)  + 'B', sub:'aggregate TTM' },
+    { lbl:'Net Income',   val: '€' + totNI.toFixed(1)   + 'B', sub:'aggregate TTM' },
+  ];
+
+  document.getElementById('summary').innerHTML = items.map(it => `
+    <div class="s-card">
+      <div class="s-lbl">${it.lbl}</div>
+      <div class="s-val">${it.val}</div>
+      <div class="s-sub">${it.sub}</div>
+    </div>`).join('');
+
+  const scope = activeSector === 'All' && !searchQuery
+    ? 'Full universe — 35 companies'
+    : (searchQuery ? `Search: "${searchQuery}"` : `Sector: ${activeSector}`) + ` — ${data.length} companies`;
+  document.getElementById('summary-scope').textContent = scope;
+}
+
+// ── INSIGHTS (filter-aware) ───────────────────────────────────────────────
+function buildInsights(data) {
+  if (!data.length) {
+    document.getElementById('insights').innerHTML = '<div style="color:var(--text3);font-size:.8rem;padding:16px">No data to analyse.</div>';
+    return;
+  }
+
+  const sorted  = (arr, fn) => [...arr].sort(fn);
+  const byMcap  = sorted(data, (a,b) => b.mcap - a.mcap);
+  const byRev   = sorted(data, (a,b) => b.rev  - a.rev);
+  const byNI    = sorted(data, (a,b) => b.ni   - a.ni);
+  const byRet   = sorted(data, (a,b) => b.r12  - a.r12);
+  const byWorst = sorted(data, (a,b) => a.r12  - b.r12);
+  const losses  = data.filter(c => c.ni < 0);
+
+  // Sector aggregates over visible data
+  const sM={}, sR={}, sN={};
+  data.forEach(c => {
+    const s = c.sector;
+    sM[s] = (sM[s]||0) + c.mcap;
+    sR[s] = (sR[s]||0) + c.rev;
+    sN[s] = (sN[s]||0) + 1;
+  });
+  const topSM = Object.entries(sM).sort((a,b)=>b[1]-a[1])[0];
+  const topSR = Object.entries(sR).sort((a,b)=>b[1]-a[1])[0];
+  const topSN = Object.entries(sN).sort((a,b)=>b[1]-a[1])[0];
+
+  const byMcRev  = sorted(data.filter(c=>c.sector!=='Real Estate'), (a,b)=>b.mcr-a.mcr);
+  const byMargin = sorted(data.filter(c=>c.sector!=='Real Estate'&&c.pm>0), (a,b)=>b.pm-a.pm);
+  const intl     = data.filter(c=>c.country!=='Spain');
+
+  const cards = [
+    { cls:'c-gold', tag:'Largest Market Cap',   val:`${byMcap[0].tk} — ${fmtB(byMcap[0].mcap)}`,
+      desc:`${byMcap[0].name} leads this selection by market capitalisation with a €${byMcap[0].mcap.toFixed(1)}B valuation.` },
+
+    { cls:'c-blue', tag:'Highest Revenue',      val:`${byRev[0].tk} — ${fmtB(byRev[0].rev)}`,
+      desc:`${byRev[0].name} posts the highest trailing twelve-month revenue at €${byRev[0].rev.toFixed(1)}B.` },
+
+    { cls:'c-green',tag:'Top Net Income',        val:`${byNI[0].tk} — ${fmtB(byNI[0].ni)}`,
+      desc:`${byNI[0].name} records the largest absolute net profit, at €${byNI[0].ni.toFixed(1)}B.` },
+
+    { cls:'c-green',tag:'Best 12-Month Return',  val:`${byRet[0].tk}  ${fmtPct(byRet[0].r12)}`,
+      desc:`${byRet[0].name} is the top-performing stock in this selection over the past 12 months.` },
+
+    { cls:'c-red',  tag:'Worst 12-Month Return', val:`${byWorst[0].tk}  ${fmtPct(byWorst[0].r12)}`,
+      desc:`${byWorst[0].name} is the weakest performer in this selection, down ${(Math.abs(byWorst[0].r12)*100).toFixed(1)}% over 12 months.` },
+
+    losses.length ? { cls:'c-red', tag:'Companies Reporting Losses', val:`${losses.length} compan${losses.length===1?'y':'ies'}`,
+      desc:`${losses.map(c=>c.tk).join(', ')} report negative net income and are plotted below the breakeven line.` }
+    : { cls:'c-muted', tag:'Companies Reporting Losses', val:'None in this selection',
+        desc:'All companies within this filtered view report positive net income.' },
+
+    { cls:'c-gold', tag:'Sector — Highest Mkt Cap', val:`${topSM[0]} — €${topSM[1].toFixed(0)}B`,
+      desc:`Within this selection, the ${topSM[0]} sector carries the largest aggregate market capitalisation.` },
+
+    { cls:'c-blue', tag:'Sector — Highest Revenue',  val:`${topSR[0]} — €${topSR[1].toFixed(0)}B`,
+      desc:`${topSR[0]} generates the most aggregate revenue among the sectors represented in this view.` },
+
+    byMcRev.length ? { cls:'c-gold', tag:'Premium Valuation (MCap/Rev)', val:`${byMcRev[0].tk} — ${byMcRev[0].mcr.toFixed(2)}x`,
+      desc:`${byMcRev[0].name} trades at the highest market-cap-to-revenue multiple (${byMcRev[0].mcr.toFixed(1)}x), excluding REITs whose accounting inflates this ratio.` }
+    : null,
+
+    byMargin.length ? { cls:'c-green', tag:'Highest Net Margin', val:`${byMargin[0].tk} — ${(byMargin[0].pm*100).toFixed(1)}%`,
+      desc:`${byMargin[0].name} achieves the highest net profit margin (${(byMargin[0].pm*100).toFixed(1)}%) among non-Real Estate companies in this view.` }
+    : null,
+
+    intl.length ? { cls:'c-muted', tag:'International Domicile', val:`${intl.length} non-Spanish HQ${intl.length===1?'':'s'}`,
+      desc:`${intl.map(c=>c.tk+' ('+c.country+')').join(', ')} are listed on Spanish markets but legally domiciled abroad.` }
+    : null,
+
+    { cls:'c-muted', tag:'Most Represented Sector', val:`${topSN[0]} — ${topSN[1]} companies`,
+      desc:`${topSN[0]} has the most listed names in this selection with ${topSN[1]} companies represented.` }
+
+  ].filter(Boolean);
+
+  document.getElementById('insights').innerHTML = cards.map(c => `
+    <div class="ic ${c.cls}">
+      <div class="ic-tag">${c.tag}</div>
+      <div class="ic-val">${c.val}</div>
+      <div class="ic-desc">${c.desc}</div>
+    </div>`).join('');
+
+  const scope = activeSector === 'All' && !searchQuery
+    ? 'Full universe'
+    : (searchQuery ? `"${searchQuery}"` : activeSector);
+  document.getElementById('insights-scope').textContent = scope;
+}
+
+// ── RENDER LOOP ───────────────────────────────────────────────────────────
+function render() {
+  const vis = getVisible();
+  buildChart(vis);
+  buildSummary(vis);
+  buildInsights(vis);
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+document.getElementById('srch').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  render();
+});
+
+// ── RESET ZOOM ────────────────────────────────────────────────────────────
+document.getElementById('btn-reset').addEventListener('click', () => {
+  Plotly.relayout('chart-plot', {'xaxis.autorange':true,'yaxis.autorange':true});
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
